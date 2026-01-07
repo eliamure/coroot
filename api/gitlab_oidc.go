@@ -53,7 +53,13 @@ type GitLabTokenResponse struct {
 const (
 	gitlabOIDCStateCookieName = "coroot_gitlab_oidc_state"
 	gitlabOIDCStateTTL        = 10 * time.Minute
+	gitlabHTTPTimeout         = 30 * time.Second
 )
+
+// gitlabHTTPClient is a shared HTTP client for GitLab API requests with timeouts
+var gitlabHTTPClient = &http.Client{
+	Timeout: gitlabHTTPTimeout,
+}
 
 // generateOIDCState generates a random state string for OIDC authentication
 func generateOIDCState() (string, error) {
@@ -86,6 +92,7 @@ func (api *Api) GitLabOIDCLogin(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		Expires:  time.Now().Add(gitlabOIDCStateTTL),
 		HttpOnly: true,
+		Secure:   r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https",
 		SameSite: http.SameSiteLaxMode,
 	})
 
@@ -149,6 +156,7 @@ func (api *Api) GitLabOIDCCallback(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		Expires:  time.Now().Add(-time.Hour),
 		HttpOnly: true,
+		Secure:   r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https",
 	})
 
 	// Get authorization code
@@ -215,7 +223,7 @@ func (api *Api) exchangeGitLabCode(ctx context.Context, config *GitLabOIDCConfig
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := gitlabHTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute token request: %w", err)
 	}
@@ -249,7 +257,7 @@ func (api *Api) getGitLabUserInfo(ctx context.Context, config *GitLabOIDCConfig,
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := gitlabHTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute userinfo request: %w", err)
 	}
@@ -336,7 +344,7 @@ func (api *Api) createOrUpdateGitLabUser(userInfo *GitLabUserInfo, defaultRole r
 func (api *Api) getGitLabOIDCRedirectURI(r *http.Request) string {
 	scheme := "https"
 	if r.TLS == nil {
-		if fwdProto := r.Header.Get("X-Forwarded-Proto"); fwdProto != "" {
+		if fwdProto := r.Header.Get("X-Forwarded-Proto"); fwdProto == "http" || fwdProto == "https" {
 			scheme = fwdProto
 		} else {
 			scheme = "http"
