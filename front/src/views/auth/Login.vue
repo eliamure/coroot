@@ -45,6 +45,15 @@
             </v-btn>
         </v-form>
 
+        <div v-if="gitlabOidcEnabled && !set_admin_password" class="mt-5">
+            <v-divider class="my-4" />
+            <div class="text-center grey--text text--darken-1 mb-4">Or sign in with</div>
+            <v-btn block outlined color="orange darken-2" @click="loginWithGitLab">
+                <v-icon left>mdi-gitlab</v-icon>
+                GitLab
+            </v-btn>
+        </div>
+
         <div v-if="!set_admin_password" class="caption grey--text text-center mt-10">
             Contact your Coroot administrator if you forgot your email or password.
         </div>
@@ -64,6 +73,7 @@ export default {
             error: '',
             message: '',
             loading: false,
+            gitlabOidcEnabled: false,
         };
     },
 
@@ -84,6 +94,10 @@ export default {
         },
     },
 
+    mounted() {
+        this.checkGitLabOidc();
+    },
+
     methods: {
         post() {
             this.loading = true;
@@ -100,6 +114,18 @@ export default {
                 }
                 this.$router.push(this.$route.query.next || { name: 'index' });
             });
+        },
+        checkGitLabOidc() {
+            // Check if GitLab OIDC is enabled by making a request
+            // This is a simple check, the actual endpoint returns enabled status
+            this.$api.get('sso/gitlab', {}, (data, error) => {
+                if (!error && data && data.enabled) {
+                    this.gitlabOidcEnabled = true;
+                }
+            });
+        },
+        loginWithGitLab() {
+            window.location.href = this.$coroot.base_path + 'sso/gitlab/login';
         },
     },
 };

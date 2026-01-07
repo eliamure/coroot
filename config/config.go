@@ -34,6 +34,7 @@ type Config struct {
 	GlobalClickhouse *Clickhouse `yaml:"global_clickhouse"`
 
 	Auth Auth `yaml:"auth"`
+	SSO  *SSO `yaml:"sso"`
 
 	Projects []Project `yaml:"projects"`
 
@@ -187,6 +188,18 @@ func (p *Prometheus) Validate() error {
 type Auth struct {
 	AnonymousRole          string `yaml:"anonymous_role"`
 	BootstrapAdminPassword string `yaml:"bootstrap_admin_password"`
+}
+
+type SSO struct {
+	Enabled     bool       `yaml:"enabled"`
+	DefaultRole string     `yaml:"defaultRole"`
+	GitLabOIDC  *GitLabOIDC `yaml:"gitlab_oidc"`
+}
+
+type GitLabOIDC struct {
+	URL          string `yaml:"url"`           // GitLab instance URL, e.g. https://gitlab.example.com
+	ClientID     string `yaml:"client_id"`     // OAuth2 Client ID from GitLab Application
+	ClientSecret string `yaml:"client_secret"` // OAuth2 Client Secret from GitLab Application
 }
 
 func NewConfig() *Config {

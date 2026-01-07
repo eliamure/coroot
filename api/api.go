@@ -55,6 +55,11 @@ type Api struct {
 	instanceUuid   string
 
 	loadWorld LoadWorldF
+
+	// GitLab OIDC configuration
+	gitLabOIDC         *GitLabOIDCConfig
+	gitLabOIDCReadonly bool
+	urlBasePath        string
 }
 
 func NewApi(cache *cache.Cache, db *db.DB, collector *collector.Collector, pricing *pricing.Manager, roles rbac.RoleManager, licenseMgr LicenseManager,
