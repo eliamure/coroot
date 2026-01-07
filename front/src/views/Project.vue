@@ -206,6 +206,13 @@
                 </a>
             </h1>
             <SSO />
+            <h1 class="text-h5 mt-10 mb-5">
+                Single Sign-On (GitLab OIDC)
+                <a href="https://docs.coroot.com/configuration/authentication/#gitlab-oidc" target="_blank">
+                    <v-icon>mdi-information-outline</v-icon>
+                </a>
+            </h1>
+            <GitLabOIDC />
         </template>
 
         <template v-if="tab === 'cloud'">
@@ -227,6 +234,7 @@ import CustomApplications from './CustomApplications.vue';
 import Users from './Users.vue';
 import RBAC from './RBAC.vue';
 import SSO from './SSO.vue';
+import GitLabOIDC from './GitLabOIDC.vue';
 import IntegrationAI from '@/views/IntegrationAI.vue';
 import Cloud from './cloud/Cloud.vue';
 import ProjectStatus from '@/views/ProjectStatus.vue';
@@ -252,6 +260,7 @@ export default {
         Users,
         RBAC,
         SSO,
+        GitLabOIDC,
         Cloud,
     },
 

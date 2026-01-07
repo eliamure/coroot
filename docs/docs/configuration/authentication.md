@@ -123,3 +123,58 @@ Each team member authenticated through the Identity Provider will be displayed i
 
 Use http://&lt;COROOT_ADDRESS&gt;/login page and the **admin** user credentials to log in to your Coroot instance if you encounter any issues with SSO.
 
+## GitLab OIDC
+
+Coroot supports direct integration with GitLab OIDC (OpenID Connect) for authentication. This allows users to sign in using their GitLab accounts from self-hosted GitLab instances.
+
+### Setup GitLab Application
+
+1. Log in to your GitLab instance as an administrator.
+2. Navigate to **Admin Area → Applications** (for instance-wide) or **User Settings → Applications** (for user-owned applications).
+3. Click **New application** and configure the following settings:
+   - **Name:** Coroot
+   - **Redirect URI:** `http://<COROOT_ADDRESS>/sso/gitlab/callback`
+   - **Confidential:** Yes (checked)
+   - **Scopes:** Select `openid`, `profile`, and `email`
+4. Click **Save application**.
+5. Copy the **Application ID** and **Secret** for the next step.
+
+### Configure GitLab OIDC for Coroot
+
+#### Via Configuration File
+
+Add the following to your Coroot configuration file:
+
+```yaml
+sso:
+  enabled: true
+  defaultRole: Viewer  # Default role for new users (Admin, Editor, or Viewer)
+  gitlab_oidc:
+    url: https://gitlab.example.com  # Your GitLab instance URL
+    client_id: <your_application_id>
+    client_secret: <your_application_secret>
+```
+
+#### Via UI
+
+1. Navigate to **Project Settings → Organization → Single Sign-On (GitLab OIDC)**.
+2. Enter your GitLab instance URL.
+3. Enter the Application ID and Secret from the GitLab application you created.
+4. Select the default role for new users.
+5. Click **Save and Enable**.
+
+### How It Works
+
+1. When a user clicks "Sign in with GitLab" on the login page, they are redirected to your GitLab instance.
+2. After successful authentication, GitLab redirects back to Coroot with an authorization code.
+3. Coroot exchanges the code for an access token and retrieves the user's profile information.
+4. If the user doesn't exist in Coroot, a new account is created with the configured default role.
+5. The user is logged in and redirected to the home page.
+
+### Troubleshooting
+
+* **Invalid redirect URI:** Ensure the redirect URI in your GitLab application exactly matches `http://<COROOT_ADDRESS>/sso/gitlab/callback`.
+* **Missing scopes:** Make sure you've enabled the `openid`, `profile`, and `email` scopes in your GitLab application.
+* **Token exchange failed:** Verify that the Client ID and Client Secret are correctly configured.
+* Use http://&lt;COROOT_ADDRESS&gt;/login page and the **admin** user credentials to log in to your Coroot instance if you encounter any issues with GitLab OIDC.
+

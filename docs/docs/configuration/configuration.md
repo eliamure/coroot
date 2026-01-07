@@ -230,7 +230,7 @@ projects: # Create or update projects (configuration file only).
         - applicationId: default:Deployment:catalog
           objectivePercent: 98
 
-# Single Sign-on configuration (Coroot Enterprise edition only).
+# Single Sign-on configuration (Coroot Enterprise edition only for SAML).
 sso:
   enabled: false
   defaultRole: Viewer # Default role for authenticated users (Admin, Editor, Viewer, or a custom role).
@@ -240,6 +240,11 @@ sso:
       <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="http://www.okta.com/exkk72*********n5d7">
         ...
       </md:EntityDescriptor>
+  # GitLab OIDC configuration (Community and Enterprise editions).
+  gitlab_oidc:
+    url: https://gitlab.example.com  # GitLab instance URL
+    client_id: your_application_id   # OAuth2 Client ID from GitLab Application
+    client_secret: your_secret       # OAuth2 Client Secret from GitLab Application
 
 # AI configuration (Coroot Enterprise edition only).
 ai:

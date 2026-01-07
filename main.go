@@ -140,6 +140,21 @@ func main() {
 		klog.Exitln(err)
 	}
 
+	// Initialize GitLab OIDC
+	var gitlabOIDCConfig *api.GitLabOIDCConfig
+	if cfg.SSO != nil && cfg.SSO.GitLabOIDC != nil {
+		gitlabOIDCConfig = &api.GitLabOIDCConfig{
+			Enabled:      cfg.SSO.Enabled,
+			URL:          cfg.SSO.GitLabOIDC.URL,
+			ClientID:     cfg.SSO.GitLabOIDC.ClientID,
+			ClientSecret: cfg.SSO.GitLabOIDC.ClientSecret,
+			DefaultRole:  rbac.RoleName(cfg.SSO.DefaultRole),
+		}
+	}
+	if err = a.InitGitLabOIDC(cfg.UrlBasePath, gitlabOIDCConfig); err != nil {
+		klog.Exitln(err)
+	}
+
 	incidents := watchers.NewIncidents(database, a.IncidentRCA)
 
 	watchers.Start(database, promCache, pricing, incidents, !cfg.DoNotCheckForDeployments, globalClickhouse, cfg.ClickHouseSpaceManager)
@@ -169,6 +184,11 @@ func main() {
 	r.UseEncodedPath()
 	r.HandleFunc("/api/login", a.Login).Methods(http.MethodPost)
 	r.HandleFunc("/api/logout", a.Logout).Methods(http.MethodPost)
+
+	// GitLab OIDC routes
+	r.HandleFunc("/sso/gitlab/login", a.GitLabOIDCLogin).Methods(http.MethodGet)
+	r.HandleFunc("/sso/gitlab/callback", a.GitLabOIDCCallback).Methods(http.MethodGet)
+	r.HandleFunc("/api/sso/gitlab", a.Auth(a.GitLabOIDCSettings)).Methods(http.MethodGet, http.MethodPost)
 
 	r.HandleFunc("/api/user", a.Auth(a.User)).Methods(http.MethodGet, http.MethodPost)
 	r.HandleFunc("/api/users", a.Auth(a.Users)).Methods(http.MethodGet, http.MethodPost)
